@@ -1,0 +1,36 @@
+{
+  "name": "nexusops",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Plataforma Full Stack de IT Service Management — Breno Ludgerio",
+  "type": "module",
+  "engines": {
+    "node": ">=24.15.0 <25"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "setup": "node scripts/setup.mjs",
+    "dev": "concurrently -k -n API,WEB -c cyan,magenta \"npm run dev -w @nexusops/api\" \"npm run dev -w @nexusops/web\"",
+    "build": "npm run build -w @nexusops/api && npm run build -w @nexusops/web",
+    "start": "npm run start -w @nexusops/api",
+    "test": "npm run test -w @nexusops/api",
+    "test:e2e": "playwright test",
+    "lint": "eslint apps packages e2e",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "seed": "npm run seed -w @nexusops/api",
+    "db:migrate": "npm run db:migrate -w @nexusops/api",
+    "demo:reset": "node scripts/reset-demo.mjs"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.58.0",
+    "concurrently": "^9.2.0",
+    "eslint": "^10.12.0",
+    "globals": "^16.5.0",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.71.1"
+  }
+}
