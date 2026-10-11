@@ -17,7 +17,9 @@ if (!existsSync('.env')) {
 }
 mkdirSync('data', { recursive: true });
 function run(script) {
-  const result = spawnSync(process.execPath, [process.env.npm_execpath, 'run', script], { stdio: 'inherit' });
+  const result = spawnSync(process.execPath, [process.env.npm_execpath, 'run', script], {
+    stdio: 'inherit',
+  });
   if (result.status !== 0) process.exit(result.status ?? 1);
 }
 run('db:migrate');

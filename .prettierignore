@@ -1,0 +1,9 @@
+node_modules
+dist
+data
+.env
+.demo-credentials*
+package-lock.json
+test-results
+playwright-report
+docs/screenshots

@@ -18,11 +18,14 @@
     "start": "npm run start -w @nexusops/api",
     "test": "npm run test -w @nexusops/api",
     "test:e2e": "playwright test",
-    "lint": "eslint apps packages e2e",
+    "test:restart": "node scripts/verify-restart.mjs",
+    "lint": "eslint apps packages e2e scripts eslint.config.js playwright.config.ts",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "seed": "npm run seed -w @nexusops/api",
     "db:migrate": "npm run db:migrate -w @nexusops/api",
-    "demo:reset": "node scripts/reset-demo.mjs"
+    "demo:reset": "node scripts/reset-demo.mjs",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -30,6 +33,7 @@
     "concurrently": "^9.2.0",
     "eslint": "^10.12.0",
     "globals": "^16.5.0",
+    "prettier": "^3.6.2",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.71.1"
   }

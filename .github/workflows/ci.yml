@@ -1,0 +1,64 @@
+name: NexusOps CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    env:
+      CI: true
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Dependências reproduzíveis
+        run: npm ci
+      - name: Auditoria de dependências
+        run: npm audit --audit-level=moderate
+      - name: Preparar banco local descartável
+        run: npm run setup
+      - name: Validar reaplicação das migrations
+        run: npm run db:migrate
+      - name: TypeScript
+        run: npm run typecheck
+      - name: Lint
+        run: npm run lint
+      - name: Formatação
+        run: npm run format:check
+      - name: Testes unitários e de integração
+        run: npm test
+      - name: Build
+        run: npm run build
+      - name: Persistência após reiniciar a API real
+        run: npm run test:restart
+      - name: Instalar navegador de teste
+        run: npx playwright install --with-deps chromium
+      - name: Jornadas E2E e responsividade
+        run: npm run test:e2e
+      - name: Preservar diagnóstico das falhas
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-diagnostics-${{ matrix.os }}
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
