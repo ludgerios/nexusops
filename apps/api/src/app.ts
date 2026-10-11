@@ -117,28 +117,24 @@ export async function buildApp(options: Options = {}) {
     const failure: Error & { statusCode?: number } =
       error instanceof Error ? error : new Error('Unknown API error');
     if (error instanceof ZodError)
-      return reply
-        .code(400)
-        .send({
-          error: {
-            code: 'VALIDATION_ERROR',
-            message: 'Verifique os campos informados.',
-            fields: error.issues.map((i) => ({ path: i.path.join('.'), message: i.message })),
-          },
-        });
+      return reply.code(400).send({
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Verifique os campos informados.',
+          fields: error.issues.map((i) => ({ path: i.path.join('.'), message: i.message })),
+        },
+      });
     if (error instanceof ApiError)
       return reply
         .code(error.statusCode)
         .send({ error: { code: error.code, message: error.message } });
     if ('statusCode' in failure && failure.statusCode === 429)
-      return reply
-        .code(429)
-        .send({
-          error: {
-            code: 'RATE_LIMITED',
-            message: 'Muitas tentativas. Aguarde alguns minutos antes de tentar novamente.',
-          },
-        });
+      return reply.code(429).send({
+        error: {
+          code: 'RATE_LIMITED',
+          message: 'Muitas tentativas. Aguarde alguns minutos antes de tentar novamente.',
+        },
+      });
     if ('statusCode' in failure && failure.statusCode && failure.statusCode < 500)
       return reply
         .code(failure.statusCode)
@@ -148,11 +144,9 @@ export async function buildApp(options: Options = {}) {
         .code(409)
         .send({ error: { code: 'CONFLICT', message: 'Já existe um registro com esses dados.' } });
     request.log.error({ err: error }, 'Unhandled API failure');
-    return reply
-      .code(500)
-      .send({
-        error: { code: 'INTERNAL_ERROR', message: 'Não foi possível concluir a operação.' },
-      });
+    return reply.code(500).send({
+      error: { code: 'INTERNAL_ERROR', message: 'Não foi possível concluir a operação.' },
+    });
   });
   app.get('/health', async () => ({
     status: 'ok',
@@ -610,7 +604,7 @@ export async function buildApp(options: Options = {}) {
         ...keys.map((k) => (k === 'active' ? Number(input[k]) : (input[k] ?? null))),
         id,
       );
-      if (input.active === false || input.role !== undefined)
+      if (input.active === false || (input.role !== undefined && input.role !== old.role))
         store.run('DELETE FROM sessions WHERE userId=?', id);
       service.audit(actor.id, 'user.updated', 'user', id, input);
     });

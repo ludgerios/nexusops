@@ -857,6 +857,44 @@ describe('SLA deadlines, persistent automations and analytics', () => {
 });
 
 describe('Administration and file persistence', () => {
+  it('preserves sessions for profile edits and revokes them for role changes or deactivation', async () => {
+    const ownEdit = await request(adminAuth, 'PATCH', `/api/admin/users/${admin.id}`, {
+      name: 'Administrador atualizado',
+      role: admin.role,
+      active: true,
+      teamId: admin.teamId,
+    });
+    expect(ownEdit.statusCode).toBe(200);
+    expect((await request(adminAuth, 'GET', '/api/auth/me')).statusCode).toBe(200);
+    await request(adminAuth, 'PATCH', `/api/admin/users/${admin.id}`, { name: admin.name });
+    const created = await request(adminAuth, 'POST', '/api/admin/users', {
+      name: 'Agente de sessão',
+      email: 'session-regression@nexusops.local',
+      password: PASSWORD,
+      role: 'agent',
+    });
+    expect(created.statusCode).toBe(201);
+    const user = created.json() as User;
+    const auth = await login(user.email);
+    const rename = await request(adminAuth, 'PATCH', `/api/admin/users/${user.id}`, {
+      name: 'Agente renomeado',
+      role: 'agent',
+      active: true,
+    });
+    expect(rename.statusCode).toBe(200);
+    expect((await request(auth, 'GET', '/api/auth/me')).statusCode).toBe(200);
+    expect(
+      (await request(adminAuth, 'PATCH', `/api/admin/users/${user.id}`, { role: 'requester' }))
+        .statusCode,
+    ).toBe(200);
+    expect((await request(auth, 'GET', '/api/auth/me')).statusCode).toBe(401);
+    const nextAuth = await login(user.email);
+    expect(
+      (await request(adminAuth, 'PATCH', `/api/admin/users/${user.id}`, { active: false }))
+        .statusCode,
+    ).toBe(200);
+    expect((await request(nextAuth, 'GET', '/api/auth/me')).statusCode).toBe(401);
+  });
   it('creates/updates teams and users, records audit without password, keeps last administrator', async () => {
     const team = (
       await request(adminAuth, 'POST', '/api/admin/teams', {
